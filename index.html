@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Kişiselleştirilmiş film ve dizi önerileri alın. Tercihlerinize göre en iyi içerikleri keşfedin.">
+    <meta name="keywords" content="film önerisi, dizi önerisi, film tavsiyesi, yapay zeka, TMDb">
+    <meta name="author" content="Film Öneri Sistemi">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Film & Dizi Öneri Sistemi">
+    <meta property="og:description" content="Kişiselleştirilmiş film ve dizi önerileri">
+    <meta property="og:type" content="website">
+
+    <title>Film & Dizi Öneri Sistemi - Kişiselleştirilmiş Öneriler</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="components/components.css">
+</head>
+
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="container">
+                <div class="header-content">
+                    <h1 class="logo">
+                        <span class="text-gradient">🎬 CineMatch</span>
+                    </h1>
+                    <nav class="header-nav hidden" id="headerNav">
+                        <button class="btn btn-secondary" id="watchlistBtn">
+                            📋 İzleme Listesi
+                        </button>
+                        <button class="btn btn-secondary" id="favoritesBtn">
+                            ❤️ Favoriler
+                        </button>
+                        <button class="btn btn-secondary" id="resetBtn">
+                            🔄 Yeniden Başla
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Welcome Screen -->
+                <section id="welcomeScreen" class="welcome-screen">
+                    <div class="welcome-content fade-in">
+                        <h2 class="welcome-title">
+                            Senin İçin Mükemmel Film ve Dizileri Keşfet
+                        </h2>
+                        <p class="welcome-subtitle">
+                            Yapay zeka destekli öneri sistemimiz, tercihlerinize göre size özel içerikler bulur
+                        </p>
+                        <button class="btn btn-primary btn-large" id="startBtn">
+                            ✨ Hemen Başla
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Preferences Screen -->
+                <section id="preferencesScreen" class="preferences-screen hidden">
+                    <div class="preferences-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+
+                        <div class="preference-steps">
+                            <!-- Step 1: Media Type -->
+                            <div class="preference-step active" id="step1">
+                                <h3 class="step-title">Ne İzlemek İstersiniz?</h3>
+                                <div class="media-type-options">
+                                    <button class="option-card" data-value="movie">
+                                        <span class="option-icon">🎬</span>
+                                        <span class="option-label">Filmler</span>
+                                    </button>
+                                    <button class="option-card" data-value="tv">
+                                        <span class="option-icon">📺</span>
+                                        <span class="option-label">Diziler</span>
+                                    </button>
+                                    <button class="option-card" data-value="both">
+                                        <span class="option-icon">🎭</span>
+                                        <span class="option-label">Her İkisi</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Genres -->
+                            <div class="preference-step hidden" id="step2">
+                                <h3 class="step-title">Hangi Türleri Seviyorsunuz?</h3>
+                                <p class="step-subtitle">Birden fazla seçebilirsiniz</p>
+                                <div class="genre-grid" id="genreGrid"></div>
+                            </div>
+
+                            <!-- Step 3: Search Watched Content -->
+                            <div class="preference-step hidden" id="step3">
+                                <h3 class="step-title">Daha Önce İzlediğiniz İçerikler</h3>
+                                <p class="step-subtitle">Beğendiğiniz film veya dizileri ekleyin (opsiyonel)</p>
+                                <div class="search-container">
+                                    <input type="text" class="form-input search-input" id="watchedSearch"
+                                        placeholder="Film veya dizi ara...">
+                                    <div class="search-results" id="searchResults"></div>
+                                </div>
+                                <div class="selected-items" id="selectedWatched"></div>
+                            </div>
+
+                            <!-- Step 4: Additional Preferences -->
+                            <div class="preference-step hidden" id="step4">
+                                <h3 class="step-title">Ek Tercihler (Opsiyonel)</h3>
+
+                                <div class="preference-grid">
+                                    <!-- Year Range -->
+                                    <div class="form-group">
+                                        <label class="form-label">Yayın Yılı</label>
+                                        <select class="form-select" id="yearRange">
+                                            <option value="">Tümü</option>
+                                            <option value="classic">Klasik (1950-1990)</option>
+                                            <option value="modern">Modern (1990-2010)</option>
+                                            <option value="current">Güncel (2010+)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Duration (for movies) -->
+                                    <div class="form-group" id="durationGroup">
+                                        <label class="form-label">Film Süresi</label>
+                                        <select class="form-select" id="duration">
+                                            <option value="">Tümü</option>
+                                            <option value="short">Kısa (<90 dk)</option>
+                                            <option value="medium">Orta (90-150 dk)</option>
+                                            <option value="long">Uzun (>150 dk)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Min Rating -->
+                                    <div class="form-group">
+                                        <label class="form-label">Minimum Puan</label>
+                                        <select class="form-select" id="minRating">
+                                            <option value="0">Tümü</option>
+                                            <option value="6">6.0+</option>
+                                            <option value="7">7.0+</option>
+                                            <option value="8">8.0+</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Emotional Tone -->
+                                    <div class="form-group">
+                                        <label class="form-label">Duygusal Ton</label>
+                                        <select class="form-select" id="emotionalTone">
+                                            <option value="">Tümü</option>
+                                            <option value="fun">Eğlenceli</option>
+                                            <option value="serious">Ciddi</option>
+                                            <option value="dark">Karanlık</option>
+                                            <option value="light">Hafif</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Language Preference -->
+                                    <div class="form-group">
+                                        <label class="form-label">Dil Tercihi</label>
+                                        <select class="form-select" id="languagePreference">
+                                            <option value="">Tümü</option>
+                                            <option value="turkish">Türkçe Dublaj/Altyazı</option>
+                                            <option value="original">Orijinal Dil</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Popularity Level -->
+                                    <div class="form-group">
+                                        <label class="form-label">Popülerlik</label>
+                                        <select class="form-select" id="popularityLevel">
+                                            <option value="">Tümü</option>
+                                            <option value="mainstream">Ana Akım</option>
+                                            <option value="independent">Bağımsız</option>
+                                            <option value="cult">Kült Yapımlar</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Age Rating -->
+                                    <div class="form-group">
+                                        <label class="form-label">Yaş Sınırı</label>
+                                        <select class="form-select" id="ageRating">
+                                            <option value="">Tümü</option>
+                                            <option value="family">Aile Dostu</option>
+                                            <option value="teen">13+</option>
+                                            <option value="adult">18+</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Theme -->
+                                    <div class="form-group">
+                                        <label class="form-label">Tema</label>
+                                        <select class="form-select" id="theme">
+                                            <option value="">Tümü</option>
+                                            <option value="trueStory">Gerçek Hikaye</option>
+                                            <option value="superhero">Süper Kahraman</option>
+                                            <option value="dystopia">Distopya</option>
+                                            <option value="romance">Romantizm</option>
+                                            <option value="crime">Suç</option>
+                                            <option value="war">Savaş</option>
+                                            <option value="comingOfAge">Büyüme Hikayesi</option>
+                                            <option value="revenge">İntikam</option>
+                                            <option value="survival">Hayatta Kalma</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="step-navigation">
+                            <button class="btn btn-secondary" id="prevBtn" disabled>
+                                ← Geri
+                            </button>
+                            <button class="btn btn-primary" id="nextBtn">
+                                İleri →
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Results Screen -->
+                <section id="resultsScreen" class="results-screen hidden">
+                    <div class="results-header">
+                        <h2 class="results-title">Sizin İçin Seçtiklerimiz</h2>
+                        <div class="results-controls">
+                            <select class="form-select" id="sortBy">
+                                <option value="score">Öneri Puanı</option>
+                                <option value="rating">IMDB Puanı</option>
+                                <option value="popularity">Popülerlik</option>
+                                <option value="year">Yıl</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="results-grid" id="resultsGrid"></div>
+
+                    <div class="results-actions">
+                        <button class="btn btn-secondary" id="loadMoreBtn">
+                            Daha Fazla Göster
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Watchlist Screen -->
+                <section id="watchlistScreen" class="results-screen hidden">
+                    <div class="results-header">
+                        <h2 class="results-title">📋 İzleme Listem</h2>
+                        <button class="btn btn-secondary" id="backFromWatchlist">
+                            ← Geri Dön
+                        </button>
+                    </div>
+
+                    <div class="results-grid" id="watchlistGrid"></div>
+
+                    <div id="emptyWatchlist" class="empty-state hidden">
+                        <p>İzleme listeniz boş. Film veya dizi detaylarından içerik ekleyebilirsiniz.</p>
+                    </div>
+                </section>
+
+                <!-- Favorites Screen -->
+                <section id="favoritesScreen" class="results-screen hidden">
+                    <div class="results-header">
+                        <h2 class="results-title">❤️ Favorilerim</h2>
+                        <button class="btn btn-secondary" id="backFromFavorites">
+                            ← Geri Dön
+                        </button>
+                    </div>
+
+                    <div class="results-grid" id="favoritesGrid"></div>
+
+                    <div id="emptyFavorites" class="empty-state hidden">
+                        <p>Favori listeniz boş. Film veya dizi detaylarından içerik ekleyebilirsiniz.</p>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="container">
+                <p class="footer-text">
+                    Powered by <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDb</a>
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">×</button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>
