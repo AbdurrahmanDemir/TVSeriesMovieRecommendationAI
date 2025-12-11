@@ -1,0 +1,65 @@
+// Add this to app.js in the nextStep function
+
+// In app.js, find the nextStep() function and modify it:
+
+async nextStep() {
+    if (this.currentStep === 1) {
+        // Validate media type selection
+        if (!this.preferences.mediaType) {
+            alert('Lütfen bir seçim yapın');
+            return;
+        }
+    }
+
+    if (this.currentStep === 2) {
+        // Validate genre selection
+        if (this.preferences.selectedGenres.length === 0) {
+            alert('Lütfen en az bir tür seçin');
+            return;
+        }
+    }
+
+    if (this.currentStep === 4) {
+        // Before going to step 5, fetch content pool and generate AI comparison
+        await this.prepareAIComparison();
+    }
+
+    if (this.currentStep === 5) {
+        // User has made comparison choice, show results
+        // This is handled in AI Features module
+        return;
+    }
+
+    if (this.currentStep < this.totalSteps) {
+        this.currentStep++;
+        this.updateStep();
+    } else {
+        // Generate recommendations
+        await this.generateRecommendations();
+    }
+}
+
+// Add this new method to App class:
+
+async prepareAIComparison() {
+    this.showLoading();
+    
+    try {
+        // Fetch content pool based on preferences
+        await this.fetchContentPool();
+        
+        // Generate AI comparison
+        const comparison = await this.aiFeatures.generateComparison(this.contentPool);
+        
+        if (comparison) {
+            // Render comparison in Step 5
+            this.aiFeatures.renderComparison(comparison);
+        }
+        
+        this.hideLoading();
+    } catch (error) {
+        this.hideLoading();
+        console.error('AI comparison preparation error:', error);
+        alert('AI karşılaştırma hazırlanırken bir hata oluştu.');
+    }
+}

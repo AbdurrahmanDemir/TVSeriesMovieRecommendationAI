@@ -6,31 +6,31 @@
     /* Color Palette - Vibrant Cinema Theme */
     --primary-hue: 280;
     --primary-sat: 85%;
-    
+
     --color-primary: hsl(var(--primary-hue), var(--primary-sat), 55%);
     --color-primary-light: hsl(var(--primary-hue), var(--primary-sat), 65%);
     --color-primary-dark: hsl(var(--primary-hue), var(--primary-sat), 45%);
-    
+
     --color-secondary: hsl(340, 85%, 55%);
     --color-accent: hsl(190, 85%, 55%);
-    
+
     --color-bg-primary: hsl(240, 15%, 8%);
     --color-bg-secondary: hsl(240, 12%, 12%);
     --color-bg-tertiary: hsl(240, 10%, 16%);
-    
+
     --color-text-primary: hsl(0, 0%, 95%);
     --color-text-secondary: hsl(0, 0%, 70%);
     --color-text-muted: hsl(0, 0%, 50%);
-    
+
     --color-success: hsl(140, 70%, 50%);
     --color-warning: hsl(40, 90%, 55%);
     --color-error: hsl(0, 75%, 55%);
-    
+
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
     --gradient-accent: linear-gradient(135deg, var(--color-accent) 0%, var(--color-primary) 100%);
     --gradient-dark: linear-gradient(180deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
-    
+
     /* Spacing */
     --space-xs: 0.5rem;
     --space-sm: 1rem;
@@ -38,11 +38,11 @@
     --space-lg: 2rem;
     --space-xl: 3rem;
     --space-2xl: 4rem;
-    
+
     /* Typography */
     --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-display: 'Outfit', var(--font-primary);
-    
+
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
     --font-size-base: 1rem;
@@ -51,31 +51,31 @@
     --font-size-2xl: 1.5rem;
     --font-size-3xl: 2rem;
     --font-size-4xl: 2.5rem;
-    
+
     --font-weight-normal: 400;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
-    
+
     /* Border Radius */
     --radius-sm: 0.5rem;
     --radius-md: 1rem;
     --radius-lg: 1.5rem;
     --radius-xl: 2rem;
     --radius-full: 9999px;
-    
+
     /* Shadows */
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.2);
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.3);
     --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.4);
     --shadow-glow: 0 0 32px rgba(var(--primary-hue), var(--primary-sat), 55%, 0.3);
-    
+
     /* Transitions */
     --transition-fast: 150ms ease;
     --transition-base: 250ms ease;
     --transition-slow: 400ms ease;
-    
+
     /* Glass Effect */
     --glass-bg: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.1);
@@ -115,7 +115,7 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background: 
+    background:
         radial-gradient(circle at 20% 30%, hsla(280, 85%, 55%, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 80% 70%, hsla(340, 85%, 55%, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 50% 50%, hsla(190, 85%, 55%, 0.1) 0%, transparent 50%);
@@ -124,27 +124,56 @@ body::before {
 }
 
 @keyframes bgPulse {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
 
 /* ===================================
    Typography
    =================================== */
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-family: var(--font-display);
     font-weight: var(--font-weight-bold);
     line-height: 1.2;
     margin-bottom: var(--space-md);
 }
 
-h1 { font-size: var(--font-size-4xl); }
-h2 { font-size: var(--font-size-3xl); }
-h3 { font-size: var(--font-size-2xl); }
-h4 { font-size: var(--font-size-xl); }
-h5 { font-size: var(--font-size-lg); }
-h6 { font-size: var(--font-size-base); }
+h1 {
+    font-size: var(--font-size-4xl);
+}
+
+h2 {
+    font-size: var(--font-size-3xl);
+}
+
+h3 {
+    font-size: var(--font-size-2xl);
+}
+
+h4 {
+    font-size: var(--font-size-xl);
+}
+
+h5 {
+    font-size: var(--font-size-lg);
+}
+
+h6 {
+    font-size: var(--font-size-base);
+}
 
 p {
     margin-bottom: var(--space-sm);
@@ -328,18 +357,37 @@ a:hover {
     gap: var(--space-md);
 }
 
-.grid-2 { grid-template-columns: repeat(2, 1fr); }
-.grid-3 { grid-template-columns: repeat(3, 1fr); }
-.grid-4 { grid-template-columns: repeat(4, 1fr); }
-.grid-auto { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.grid-auto {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
 
 /* ===================================
    Utilities
    =================================== */
 
-.text-center { text-align: center; }
-.text-left { text-align: left; }
-.text-right { text-align: right; }
+.text-center {
+    text-align: center;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.text-right {
+    text-align: right;
+}
 
 .text-gradient {
     background: var(--gradient-primary);
@@ -348,16 +396,28 @@ a:hover {
     background-clip: text;
 }
 
-.hidden { display: none !important; }
-.visible { display: block !important; }
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
 
 .fade-in {
     animation: fadeIn var(--transition-slow) ease-in;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .slide-in {
@@ -365,8 +425,15 @@ a:hover {
 }
 
 @keyframes slideIn {
-    from { opacity: 0; transform: translateX(-30px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 /* ===================================
@@ -383,7 +450,9 @@ a:hover {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .loading-overlay {
@@ -405,7 +474,9 @@ a:hover {
    =================================== */
 
 @media (max-width: 1024px) {
-    .grid-4 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 @media (max-width: 768px) {
@@ -414,19 +485,20 @@ a:hover {
         --font-size-3xl: 1.75rem;
         --font-size-2xl: 1.5rem;
     }
-    
+
     .grid-2,
     .grid-3,
     .grid-4 {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .container {
         padding: 0 var(--space-sm);
     }
 }
 
 @media (max-width: 480px) {
+
     .grid-2,
     .grid-3,
     .grid-4,

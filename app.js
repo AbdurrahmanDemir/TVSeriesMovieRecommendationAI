@@ -1,6 +1,9 @@
-import tmdbAPI from './api/tmdb.js';
+﻿import tmdbAPI from './api/tmdb.js';
 import storage from './storage/user-data.js';
 import recommendationEngine from './recommendation/engine.js';
+import geminiAPI from './api/gemini.js';
+import AIFeatures from './components/ai-features.js';
+// import aiChat from './components/ai-chat.js'; // Not used
 import { GENRES, YEAR_RANGES, DURATION } from './utils/constants.js';
 import { debounce, formatRating, getYear } from './utils/helpers.js';
 
@@ -11,7 +14,7 @@ import { debounce, formatRating, getYear } from './utils/helpers.js';
 class App {
     constructor() {
         this.currentStep = 1;
-        this.totalSteps = 4;
+        this.totalSteps = 5; // 1: Media Type, 2: Genres, 3-5: AI Rounds
         this.preferences = storage.loadPreferences();
         this.searchResults = [];
         this.recommendations = [];
@@ -27,6 +30,12 @@ class App {
         this.cacheElements();
         this.attachEventListeners();
         this.checkExistingPreferences();
+
+        // Initialize AI Features
+        this.aiFeatures = new AIFeatures(this);
+        this.aiFeatures.init();
+
+        // AI Chat disabled
     }
 
     /**
@@ -56,15 +65,13 @@ class App {
             1: document.getElementById('step1'),
             2: document.getElementById('step2'),
             3: document.getElementById('step3'),
-            4: document.getElementById('step4')
+            4: document.getElementById('step4'),
+            5: document.getElementById('step5')
         };
 
         // Other elements
         this.progressFill = document.getElementById('progressFill');
         this.genreGrid = document.getElementById('genreGrid');
-        this.watchedSearch = document.getElementById('watchedSearch');
-        this.searchResults = document.getElementById('searchResults');
-        this.selectedWatched = document.getElementById('selectedWatched');
         this.resultsGrid = document.getElementById('resultsGrid');
         this.watchlistGrid = document.getElementById('watchlistGrid');
         this.favoritesGrid = document.getElementById('favoritesGrid');
@@ -87,7 +94,10 @@ class App {
 
         // Navigation buttons
         this.prevBtn.addEventListener('click', () => this.previousStep());
-        this.nextBtn.addEventListener('click', () => this.nextStep());
+        this.nextBtn.addEventListener('click', () => {
+            console.log('▶️ Next button clicked, currentStep:', this.currentStep);
+            this.nextStep();
+        });
 
         // Reset button
         this.resetBtn.addEventListener('click', () => this.reset());
@@ -101,10 +111,7 @@ class App {
             });
         });
 
-        // Search input
-        this.watchedSearch.addEventListener('input', debounce((e) => {
-            this.handleSearch(e.target.value);
-        }, 500));
+        // Search input removed (Step 3 removed)
 
         // Sort change
         this.sortBy.addEventListener('change', () => this.sortResults());
@@ -116,47 +123,7 @@ class App {
         this.modalClose.addEventListener('click', () => this.closeModal());
         this.modal.querySelector('.modal-overlay').addEventListener('click', () => this.closeModal());
 
-        // Year range
-        document.getElementById('yearRange').addEventListener('change', (e) => {
-            const value = e.target.value;
-            this.preferences.yearRange = value ? YEAR_RANGES[value] : null;
-        });
-
-        // Duration
-        document.getElementById('duration').addEventListener('change', (e) => {
-            const value = e.target.value;
-            this.preferences.duration = value ? DURATION[value] : null;
-        });
-
-        // Min rating
-        document.getElementById('minRating').addEventListener('change', (e) => {
-            this.preferences.minRating = parseFloat(e.target.value);
-        });
-
-        // Emotional Tone
-        document.getElementById('emotionalTone').addEventListener('change', (e) => {
-            this.preferences.emotionalTone = e.target.value;
-        });
-
-        // Language Preference
-        document.getElementById('languagePreference').addEventListener('change', (e) => {
-            this.preferences.languagePreference = e.target.value;
-        });
-
-        // Popularity Level
-        document.getElementById('popularityLevel').addEventListener('change', (e) => {
-            this.preferences.popularityLevel = e.target.value;
-        });
-
-        // Age Rating
-        document.getElementById('ageRating').addEventListener('change', (e) => {
-            this.preferences.ageRating = e.target.value;
-        });
-
-        // Theme
-        document.getElementById('theme').addEventListener('change', (e) => {
-            this.preferences.theme = e.target.value;
-        });
+        // Additional preferences removed
 
         // Watchlist and Favorites buttons
         this.watchlistBtn.addEventListener('click', () => this.showWatchlist());
@@ -349,6 +316,18 @@ class App {
         if (!this.validateStep()) return;
 
         if (this.currentStep < this.totalSteps) {
+            // Prepare AI rounds BEFORE switching steps (for steps 3, 4, 5)
+            const nextStep = this.currentStep + 1;
+            if (nextStep >= 3 && nextStep <= 5) {
+                // Step 3 = Round 1, Step 4 = Round 2, Step 5 = Round 3
+                const roundNumber = nextStep - 2;
+                console.log(`🎬 Preparing round ${roundNumber} for step ${nextStep}...`);
+                this.showLoading();
+                await this.prepareRound(roundNumber);
+                this.hideLoading();
+            }
+
+            // Now switch to the next step
             this.steps[this.currentStep].classList.add('hidden');
             this.currentStep++;
             this.steps[this.currentStep].classList.remove('hidden');
@@ -377,6 +356,7 @@ class App {
      * Validate current step
      */
     validateStep() {
+        console.log('🔍 Validating step', this.currentStep);
         if (this.currentStep === 1) {
             if (!this.preferences.mediaType) {
                 alert('Lütfen bir seçenek seçin');
@@ -406,6 +386,13 @@ class App {
      * Generate recommendations
      */
     async generateRecommendations() {
+        // Use AI features to get final recommendations
+        this.recommendations = await this.aiFeatures.getFinalRecommendations();
+        this.showResults();
+        return;
+
+        // OLD CODE BELOW (kept for reference)
+        /*
         console.log('=== GENERATE RECOMMENDATIONS CALLED ===');
         this.showLoading();
 
@@ -438,13 +425,14 @@ class App {
             this.hideLoading();
         }
     }
+    */
+    }
 
     /**
      * Fetch content pool
      */
     async fetchContentPool() {
-        const filters = {
-            genres: this.preferences.selectedGenres,
+        const baseFilters = {
             yearMin: this.preferences.yearRange?.min,
             yearMax: this.preferences.yearRange?.max,
             runtimeMin: this.preferences.duration?.min,
@@ -453,57 +441,67 @@ class App {
         };
 
         let allContent = [];
-        const pages = 5;
 
-        // Fetch with all selected genres
-        if (this.preferences.mediaType === 'movie' || this.preferences.mediaType === 'both') {
-            for (let page = 1; page <= pages; page++) {
-                try {
-                    const result = await tmdbAPI.discoverMovies({ ...filters, page });
-                    allContent = [...allContent, ...result.results.map(r => ({ ...r, media_type: 'movie' }))];
-                } catch (error) {
-                    console.error(`Error fetching movies page ${page}:`, error);
+        // TMDb API'nin with_genres parametresi AND mantığıyla çalışıyor.
+        // Birden fazla tür seçildiğinde, her tür için ayrı ayrı istek göndererek OR mantığı sağlıyoruz.
+
+        if (this.preferences.selectedGenres.length === 1) {
+            // Tek tür seçiliyse, daha fazla sayfa çek
+            const filters = {
+                ...baseFilters,
+                genres: this.preferences.selectedGenres
+            };
+            const pages = 5;
+
+            if (this.preferences.mediaType === 'movie' || this.preferences.mediaType === 'both') {
+                for (let page = 1; page <= pages; page++) {
+                    try {
+                        const result = await tmdbAPI.discoverMovies({ ...filters, page });
+                        allContent = [...allContent, ...result.results.map(r => ({ ...r, media_type: 'movie' }))];
+                    } catch (error) {
+                        console.error(`Error fetching movies page ${page}:`, error);
+                    }
                 }
             }
-        }
 
-        if (this.preferences.mediaType === 'tv' || this.preferences.mediaType === 'both') {
-            for (let page = 1; page <= pages; page++) {
-                try {
-                    const result = await tmdbAPI.discoverTV({ ...filters, page });
-                    allContent = [...allContent, ...result.results.map(r => ({ ...r, media_type: 'tv' }))];
-                } catch (error) {
-                    console.error(`Error fetching TV page ${page}:`, error);
+            if (this.preferences.mediaType === 'tv' || this.preferences.mediaType === 'both') {
+                for (let page = 1; page <= pages; page++) {
+                    try {
+                        const result = await tmdbAPI.discoverTV({ ...filters, page });
+                        allContent = [...allContent, ...result.results.map(r => ({ ...r, media_type: 'tv' }))];
+                    } catch (error) {
+                        console.error(`Error fetching TV page ${page}:`, error);
+                    }
                 }
             }
-        }
+        } else {
+            // Birden fazla tür seçiliyse, her tür için ayrı ayrı istek gönder (OR mantığı)
+            const pagesPerGenre = 3;
 
-        // Fetch for each genre individually
-        if (this.preferences.selectedGenres.length > 1) {
             for (const genreId of this.preferences.selectedGenres) {
-                const singleGenreFilters = {
-                    ...filters,
+                const filters = {
+                    ...baseFilters,
                     genres: [genreId]
                 };
 
                 if (this.preferences.mediaType === 'movie' || this.preferences.mediaType === 'both') {
-                    for (let page = 1; page <= 2; page++) {
+                    for (let page = 1; page <= pagesPerGenre; page++) {
                         try {
-                            const result = await tmdbAPI.discoverMovies({ ...singleGenreFilters, page });
+                            const result = await tmdbAPI.discoverMovies({ ...filters, page });
                             allContent = [...allContent, ...result.results.map(r => ({ ...r, media_type: 'movie' }))];
                         } catch (error) {
-                            console.error(`Error fetching movies for genre ${genreId}:`, error);
+                            console.error(`Error fetching movies for genre ${genreId}, page ${page}:`, error);
                         }
                     }
                 }
 
                 if (this.preferences.mediaType === 'tv' || this.preferences.mediaType === 'both') {
-                    for (let page = 1; page <= 2; page++) {
+                    for (let page = 1; page <= pagesPerGenre; page++) {
                         try {
-                            const result = await tmdbAPI.discoverTV({ ...singleGenreFilters, page });
+                            const result = await tmdbAPI.discoverTV({ ...filters, page });
                             allContent = [...allContent, ...result.results.map(r => ({ ...r, media_type: 'tv' }))];
                         } catch (error) {
-                            console.error(`Error fetching TV for genre ${genreId}:`, error);
+                            console.error(`Error fetching TV for genre ${genreId}, page ${page}:`, error);
                         }
                     }
                 }
@@ -523,7 +521,7 @@ class App {
         }
 
         this.contentPool = uniqueContent;
-        console.log(`Fetched ${uniqueContent.length} unique items`);
+        console.log(`Fetched ${uniqueContent.length} unique items from ${this.preferences.selectedGenres.length} genre(s)`);
     }
 
     /**
@@ -647,15 +645,21 @@ class App {
         const genres = item.genres.map(g => g.name).join(', ');
         const cast = item.credits?.cast.slice(0, 5).map(c => c.name).join(', ') || 'N/A';
 
+        // Store current item for AI features
+        this.currentModalItem = item;
+        this.currentModalType = type;
+
         // Fetch reviews
         let reviewsHTML = '';
+        let reviewsData = null;
         try {
-            const reviewsData = type === 'movie'
+            reviewsData = type === 'movie'
                 ? await tmdbAPI.getMovieReviews(item.id)
                 : await tmdbAPI.getTVReviews(item.id);
 
             if (reviewsData.results && reviewsData.results.length > 0) {
                 const reviews = reviewsData.results.slice(0, 10);
+                this.currentModalReviews = reviews; // Store for AI analysis
                 reviewsHTML = `
                     <div class="reviews-section">
                         <h3 class="reviews-title">İzleyici Yorumları</h3>
@@ -699,14 +703,23 @@ class App {
                 <p style="color: var(--color-text-secondary); line-height: 1.6;">
                     ${item.overview || 'Açıklama mevcut değil.'}
                 </p>
-                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-lg);">
+                <div style="display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-top: var(--space-lg);">
                     <button class="btn btn-primary" onclick="app.addToWatchlist(${item.id}, '${type}')">
                         ➕ İzleme Listesine Ekle
                     </button>
                     <button class="btn btn-secondary" onclick="app.addToFavorites(${item.id}, '${type}')">
                         ❤️ Favorilere Ekle
                     </button>
+                    ${reviewsData && reviewsData.results.length > 0 ? `
+                        <button class="btn btn-secondary" onclick="app.analyzeReviews()">
+                            🤖 İncelemeleri Analiz Et
+                        </button>
+                    ` : ''}
+                    <button class="btn btn-secondary" onclick="app.chatAboutContent()">
+                        💬 AI ile Sohbet Et
+                    </button>
                 </div>
+                <div id="aiAnalysisContainer" style="margin-top: var(--space-lg);"></div>
                 ${reviewsHTML}
             </div>
         `;
@@ -899,6 +912,130 @@ class App {
     hideLoading() {
         this.loadingOverlay.classList.add('hidden');
     }
+
+    /**
+     * Prepare specific round
+     */
+    async prepareRound(roundNumber) {
+        console.log(`🎬 App.prepareRound called for round ${roundNumber}`);
+        console.log(`📊 Content pool size: ${this.contentPool?.length || 0}`);
+
+        // Fetch content pool if not already fetched
+        if (!this.contentPool || this.contentPool.length === 0) {
+            console.log('⏳ Fetching content pool...');
+            await this.fetchContentPool();
+            console.log(`✅ Content pool fetched: ${this.contentPool.length} items`);
+        }
+
+        console.log(`🔄 Calling aiFeatures.prepareRound(${roundNumber})...`);
+        // Prepare and render round
+        const pair = await this.aiFeatures.prepareRound(roundNumber, this.contentPool);
+
+        console.log(`📦 Pair returned:`, pair ? 'SUCCESS' : 'FAILED');
+        if (pair) {
+            console.log(`🎨 Rendering round ${roundNumber}...`);
+            this.aiFeatures.renderRound(roundNumber, pair);
+            console.log(`✅ Round ${roundNumber} rendered successfully`);
+        } else {
+            console.error(`❌ Failed to prepare round ${roundNumber}`);
+        }
+    }
+
+    /**
+     * Analyze reviews with AI
+     */
+    async analyzeReviews() {
+        if (!geminiAPI.hasApiKey()) {
+            alert('⚠️ Bu özelliği kullanmak için Google Gemini API key\'inizi girmelisiniz.\n\nAPI key almak için: https://makersuite.google.com/app/apikey');
+            return;
+        }
+
+        const container = document.getElementById('aiAnalysisContainer');
+        container.innerHTML = `
+            <div class="glass-card" style="margin-top: var(--space-lg);">
+                <h3 style="margin-bottom: var(--space-md); display: flex; align-items: center; gap: var(--space-sm);">
+                    <span>🤖</span>
+                    <span>AI İnceleme Analizi</span>
+                </h3>
+                <div class="spinner" style="margin: var(--space-lg) auto;"></div>
+                <p style="text-align: center; color: var(--color-text-muted);">İncelemeler analiz ediliyor...</p>
+            </div>
+        `;
+
+        try {
+            const title = this.currentModalItem.title || this.currentModalItem.name;
+            const analysis = await geminiAPI.analyzeReviews(
+                title,
+                this.currentModalReviews,
+                this.currentModalType
+            );
+
+            container.innerHTML = `
+                <div class="glass-card" style="margin-top: var(--space-lg); animation: fadeIn 0.3s ease-in;">
+                    <h3 style="margin-bottom: var(--space-md); display: flex; align-items: center; gap: var(--space-sm);">
+                        <span>🤖</span>
+                        <span>AI İnceleme Analizi</span>
+                    </h3>
+                    <div style="color: var(--color-text-secondary); line-height: 1.8; white-space: pre-wrap;">
+                        ${analysis}
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            container.innerHTML = `
+                <div class="glass-card" style="margin-top: var(--space-lg); border-color: var(--color-error);">
+                    <p style="color: var(--color-error);">❌ Analiz sırasında bir hata oluştu: ${error.message}</p>
+                    <p style="color: var(--color-text-muted); margin-top: var(--space-sm); font-size: var(--font-size-sm);">
+                        API key'inizin doğru olduğundan ve internet bağlantınızın aktif olduğundan emin olun.
+                    </p>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Chat about current content
+     */
+    chatAboutContent() {
+        const title = this.currentModalItem.title || this.currentModalItem.name;
+        aiChat.setContext({
+            currentContent: this.currentModalItem
+        });
+        aiChat.openChat();
+
+        // Send initial message
+        setTimeout(() => {
+            aiChat.addAIMessage(`"${title}" hakkında konuşalım! Bu ${this.currentModalType === 'movie' ? 'film' : 'dizi'} hakkında ne öğrenmek istersin?`);
+        }, 500);
+    }
+
+    /**
+     * Get mood-based recommendations (can be called from anywhere)
+     */
+    async getMoodRecommendations(mood) {
+        if (!geminiAPI.hasApiKey()) {
+            alert('⚠️ Bu özelliği kullanmak için Google Gemini API key\'inizi girmelisiniz.');
+            return;
+        }
+
+        this.showLoading();
+        try {
+            const recommendations = await geminiAPI.getMoodRecommendations(
+                mood,
+                this.preferences,
+                this.recommendations.length > 0 ? this.recommendations : this.contentPool
+            );
+
+            this.hideLoading();
+
+            // Show in AI chat
+            aiChat.openChat();
+            aiChat.addAIMessage(recommendations);
+        } catch (error) {
+            this.hideLoading();
+            alert('❌ Hata: ' + error.message);
+        }
+    }
 }
 
 // Initialize app
@@ -906,3 +1043,7 @@ const app = new App();
 
 // Make app globally accessible
 window.app = app;
+
+
+
+

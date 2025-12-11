@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 
 <head>
@@ -107,65 +107,120 @@
                             <div class="preference-step hidden" id="step2">
                                 <h3 class="step-title">Hangi Türleri Seviyorsunuz?</h3>
                                 <p class="step-subtitle">Birden fazla seçebilirsiniz</p>
-
-                                <!-- AI: Mood-Based Genre Suggestion -->
-                                <div class="ai-mood-selector"
-                                    style="margin-bottom: var(--space-lg); text-align: center;">
-                                    <p style="color: var(--color-text-secondary); margin-bottom: var(--space-sm);">
-                                        <strong>AI Önerisi:</strong> Bugün nasıl hissediyorsunuz?
-                                    </p>
-                                    <div class="mood-options"
-                                        style="display: flex; gap: var(--space-sm); justify-content: center; flex-wrap: wrap;">
-                                        <button class="btn btn-secondary btn-sm mood-btn" data-mood="happy">
-                                            Mutlu</button>
-                                        <button class="btn btn-secondary btn-sm mood-btn" data-mood="sad">
-                                            Üzgün</button>
-                                        <button class="btn btn-secondary btn-sm mood-btn" data-mood="excited">
-                                            Heyecanlı</button>
-                                        <button class="btn btn-secondary btn-sm mood-btn" data-mood="relaxed">
-                                            Rahat</button>
-                                        <button class="btn btn-secondary btn-sm mood-btn" data-mood="thoughtful">
-                                            Düşünceli</button>
-                                    </div>
-                                    <p
-                                        style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: var(--space-xs);">
-                                        veya manuel olarak seçin
-                                    </p>
-                                </div>
                                 <div class="genre-grid" id="genreGrid"></div>
                             </div>
 
-                            <!-- Step 3: AI Round 1 -->
+                            <!-- Step 3: Search Watched Content -->
                             <div class="preference-step hidden" id="step3">
-                                <h3 class="step-title"> AI Karşılaştırma - Tur 1/3</h3>
-                                <p class="step-subtitle">Hangisini daha çok seversiniz?</p>
-                                <div id="aiRound1Container" class="ai-comparison-grid"></div>
-                                <button class="btn btn-secondary" id="skipRound1Btn"
-                                    style="margin-top: var(--space-md);">
-                                    İkisini de izlemedim
-                                </button>
+                                <h3 class="step-title">Daha Önce İzlediğiniz İçerikler</h3>
+                                <p class="step-subtitle">Beğendiğiniz film veya dizileri ekleyin (opsiyonel)</p>
+                                <div class="search-container">
+                                    <input type="text" class="form-input search-input" id="watchedSearch"
+                                        placeholder="Film veya dizi ara...">
+                                    <div class="search-results" id="searchResults"></div>
+                                </div>
+                                <div class="selected-items" id="selectedWatched"></div>
                             </div>
 
-                            <!-- Step 4: AI Round 2 -->
+                            <!-- Step 4: Additional Preferences -->
                             <div class="preference-step hidden" id="step4">
-                                <h3 class="step-title"> AI Karşılaştırma - Tur 2/3</h3>
-                                <p class="step-subtitle">Hangisini daha çok seversiniz?</p>
-                                <div id="aiRound2Container" class="ai-comparison-grid"></div>
-                                <button class="btn btn-secondary" id="skipRound2Btn"
-                                    style="margin-top: var(--space-md);">
-                                    İkisini de izlemedim
-                                </button>
-                            </div>
+                                <h3 class="step-title">Ek Tercihler (Opsiyonel)</h3>
 
-                            <!-- Step 5: AI Round 3 -->
-                            <div class="preference-step hidden" id="step5">
-                                <h3 class="step-title"> AI Karşılaştırma - Tur 3/3</h3>
-                                <p class="step-subtitle">Hangisini daha çok seversiniz?</p>
-                                <div id="aiRound3Container" class="ai-comparison-grid"></div>
-                                <button class="btn btn-secondary" id="skipRound3Btn"
-                                    style="margin-top: var(--space-md);">
-                                    İkisini de izlemedim
-                                </button>
+                                <div class="preference-grid">
+                                    <!-- Year Range -->
+                                    <div class="form-group">
+                                        <label class="form-label">Yayın Yılı</label>
+                                        <select class="form-select" id="yearRange">
+                                            <option value="">Tümü</option>
+                                            <option value="classic">Klasik (1950-1990)</option>
+                                            <option value="modern">Modern (1990-2010)</option>
+                                            <option value="current">Güncel (2010+)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Duration (for movies) -->
+                                    <div class="form-group" id="durationGroup">
+                                        <label class="form-label">Film Süresi</label>
+                                        <select class="form-select" id="duration">
+                                            <option value="">Tümü</option>
+                                            <option value="short">Kısa (<90 dk)</option>
+                                            <option value="medium">Orta (90-150 dk)</option>
+                                            <option value="long">Uzun (>150 dk)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Min Rating -->
+                                    <div class="form-group">
+                                        <label class="form-label">Minimum Puan</label>
+                                        <select class="form-select" id="minRating">
+                                            <option value="0">Tümü</option>
+                                            <option value="6">6.0+</option>
+                                            <option value="7">7.0+</option>
+                                            <option value="8">8.0+</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Emotional Tone -->
+                                    <div class="form-group">
+                                        <label class="form-label">Duygusal Ton</label>
+                                        <select class="form-select" id="emotionalTone">
+                                            <option value="">Tümü</option>
+                                            <option value="fun">Eğlenceli</option>
+                                            <option value="serious">Ciddi</option>
+                                            <option value="dark">Karanlık</option>
+                                            <option value="light">Hafif</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Language Preference -->
+                                    <div class="form-group">
+                                        <label class="form-label">Dil Tercihi</label>
+                                        <select class="form-select" id="languagePreference">
+                                            <option value="">Tümü</option>
+                                            <option value="turkish">Türkçe Dublaj/Altyazı</option>
+                                            <option value="original">Orijinal Dil</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Popularity Level -->
+                                    <div class="form-group">
+                                        <label class="form-label">Popülerlik</label>
+                                        <select class="form-select" id="popularityLevel">
+                                            <option value="">Tümü</option>
+                                            <option value="mainstream">Ana Akım</option>
+                                            <option value="independent">Bağımsız</option>
+                                            <option value="cult">Kült Yapımlar</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Age Rating -->
+                                    <div class="form-group">
+                                        <label class="form-label">Yaş Sınırı</label>
+                                        <select class="form-select" id="ageRating">
+                                            <option value="">Tümü</option>
+                                            <option value="family">Aile Dostu</option>
+                                            <option value="teen">13+</option>
+                                            <option value="adult">18+</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Theme -->
+                                    <div class="form-group">
+                                        <label class="form-label">Tema</label>
+                                        <select class="form-select" id="theme">
+                                            <option value="">Tümü</option>
+                                            <option value="trueStory">Gerçek Hikaye</option>
+                                            <option value="superhero">Süper Kahraman</option>
+                                            <option value="dystopia">Distopya</option>
+                                            <option value="romance">Romantizm</option>
+                                            <option value="crime">Suç</option>
+                                            <option value="war">Savaş</option>
+                                            <option value="comingOfAge">Büyüme Hikayesi</option>
+                                            <option value="revenge">İntikam</option>
+                                            <option value="survival">Hayatta Kalma</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -258,7 +313,7 @@
     </div>
 
     <!-- Scripts -->
-    <script type="module" src="app.js?v=20251211"></script>
+    <script type="module" src="app.js"></script>
 </body>
 
 </html>

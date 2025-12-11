@@ -609,3 +609,138 @@
         font-size: 3rem;
     }
 }
+
+/* ===================================
+   AI Features
+   =================================== */
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.ai-mood-selector .mood-btn {
+    transition: all var(--transition-base);
+}
+
+.ai-mood-selector .mood-btn:hover {
+    transform: translateY(-2px);
+}
+
+.ai-mood-selector .mood-btn.selected {
+    background: var(--gradient-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.ai-natural-language {
+    animation: fadeIn 0.3s ease-in;
+}
+
+.ai-explanation {
+    margin-top: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--glass-bg);
+    border-left: 3px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.ai-explanation::before {
+    content: " ";
+}
+
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+}
+
+
+/* AI Comparison Cards */
+.comparison-card {
+    background: var(--glass-bg);
+    border: 2px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all var(--transition-base);
+}
+
+.comparison-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-xl);
+}
+
+.comparison-poster {
+    width: 100%;
+    aspect-ratio: 2/3;
+    overflow: hidden;
+}
+
+.comparison-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.comparison-info {
+    padding: var(--space-md);
+}
+
+.comparison-info h4 {
+    margin-bottom: var(--space-sm);
+    font-size: var(--font-size-lg);
+}
+
+.comparison-meta {
+    display: flex;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.ai-description {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-sm);
+}
+
+.comparison-select-btn {
+    width: 100%;
+}
+
+
+/* AI Comparison Grid */
+.ai-comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+@media (max-width: 768px) {
+    .ai-comparison-grid {
+        grid-template-columns: 1fr;
+    }
+}
