@@ -3,7 +3,7 @@
  * Provides AI-powered features for content analysis and recommendations
  */
 
-const GEMINI_API_KEY = 'AIzaSyBF2DtqqHN1duh4-Wysihfi9jfkgX3gBJc';
+const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'; // Get your free key from https://makersuite.google.com/app/apikey
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
 
 class GeminiAPI {

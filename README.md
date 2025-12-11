@@ -22,16 +22,30 @@ Modern ve akıllı bir film/dizi öneri platformu. Google Gemini AI ile güçlen
 
 ### 1. Projeyi İndirin
 ```bash
-git clone [repo-url]
+git clone https://github.com/AbdurrahmanDemir/TVSeriesMovieRecommendationAI.git
 cd TVSeriesMovieRecommendationAI
 ```
 
-### 2. Yerel Sunucu Başlatın
+### 2. API Key'leri Yapılandırın
+
+#### TMDb API Key (Gerekli)
+1. [TMDb](https://www.themoviedb.org/signup) hesabı oluşturun
+2. [API Settings](https://www.themoviedb.org/settings/api) sayfasından API key alın
+3. `utils/constants.js` dosyasında `TMDB_API_KEY` değerini güncelleyin
+
+#### Gemini API Key (AI Özellikleri için)
+1. [Google AI Studio](https://makersuite.google.com/app/apikey) adresine gidin
+2. Ücretsiz API key oluşturun
+3. `api/gemini.js` dosyasında `GEMINI_API_KEY` değerini güncelleyin
+
+### 3. Yerel Sunucu Başlatın
 ```bash
 python -m http.server 8000
+# veya
+npx -y http-server -p 8000
 ```
 
-### 3. Tarayıcıda Açın
+### 4. Tarayıcıda Açın
 ```
 http://localhost:8000
 ```
