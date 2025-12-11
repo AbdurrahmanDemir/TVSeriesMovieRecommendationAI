@@ -180,8 +180,8 @@ Bu proje eğitim amaçlıdır.
 
 ---
 
-**Geliştirici**: [İsminiz]
-**Versiyon**: 2.0.0 (AI Powered)
+**Geliştirici**: Ahmet EFE, Abdurrahman Demir, Uygar Gültekin
+**Versiyon**: 2.0.0 
 **Son Güncelleme**: Aralık 2025
 
 🎬 İyi seyirler! 🍿
