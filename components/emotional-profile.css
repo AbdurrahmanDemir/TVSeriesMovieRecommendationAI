@@ -1,0 +1,61 @@
+/* Emotional Profile Cards */
+.mood-option-card,
+.purpose-option-card,
+.intensity-option-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid transparent;
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    text-align: center;
+}
+
+.mood-option-card:hover,
+.purpose-option-card:hover,
+.intensity-option-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.mood-option-card.selected,
+.purpose-option-card.selected,
+.intensity-option-card.selected {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+    border-color: var(--color-primary);
+    transform: scale(1.05);
+}
+
+.mood-option-card span:last-child,
+.purpose-option-card span:last-child,
+.intensity-option-card span:last-child {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Energy Slider Custom Styling */
+#energySlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+#energySlider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: none;
+}

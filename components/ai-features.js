@@ -183,11 +183,11 @@ class AIFeatures {
      * Generate short AI description
      */
     async generateShortDescription(content) {
-        try {
-            const title = content.title || content.name;
-            const genres = content.genres?.map(g => g.name).join(', ') || 'Bilinmiyor';
-            const overview = (content.overview || '').substring(0, 200);
+        const title = content.title || content.name;
+        const genres = content.genres?.map(g => g.name).join(', ') || 'Bilinmiyor';
+        const overview = (content.overview || '').substring(0, 200);
 
+        try {
             const prompt = `Bu ${content.media_type === 'movie' ? 'film' : 'dizi'} hakkında 2-3 cümleyle çekici bir açıklama yaz:
 
 Başlık: "${title}"
@@ -197,10 +197,10 @@ Kısa özet: ${overview}
 Neden izlenmeli? Türkçe, kısa ve öz yaz.`;
 
             const description = await geminiAPI.generateContent(prompt);
-            return description.substring(0, 300); // Limit length
+            return description.substring(0, 300);
         } catch (error) {
-            console.error('Description generation error:', error);
-            return content.overview?.substring(0, 200) || 'Harika bir içerik!';
+            console.warn('⚠️ AI description failed, using overview:', error.message);
+            return overview || `${title} - İzlemeye değer bir yapım!`;
         }
     }
 

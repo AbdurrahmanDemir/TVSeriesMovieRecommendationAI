@@ -255,14 +255,50 @@ class TMDbAPI {
      * Get movie reviews
      */
     async getMovieReviews(movieId, page = 1) {
-        return this.request(`/movie/${movieId}/reviews`, { page });
+        // Don't filter by language for reviews - get all reviews
+        const url = buildUrl(`${this.baseUrl}/movie/${movieId}/reviews`, {
+            api_key: this.apiKey,
+            page
+        });
+
+        try {
+            const response = await retry(async () => {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    throw new Error(`API Error: ${res.status} ${res.statusText}`);
+                }
+                return res.json();
+            });
+            return response;
+        } catch (error) {
+            console.error('TMDb API Error:', error);
+            throw error;
+        }
     }
 
     /**
      * Get TV reviews
      */
     async getTVReviews(tvId, page = 1) {
-        return this.request(`/tv/${tvId}/reviews`, { page });
+        // Don't filter by language for reviews - get all reviews
+        const url = buildUrl(`${this.baseUrl}/tv/${tvId}/reviews`, {
+            api_key: this.apiKey,
+            page
+        });
+
+        try {
+            const response = await retry(async () => {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    throw new Error(`API Error: ${res.status} ${res.statusText}`);
+                }
+                return res.json();
+            });
+            return response;
+        } catch (error) {
+            console.error('TMDb API Error:', error);
+            throw error;
+        }
     }
 }
 

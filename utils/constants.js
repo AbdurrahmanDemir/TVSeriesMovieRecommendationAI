@@ -1,5 +1,5 @@
 // API Configuration
-export const TMDB_API_KEY = 'YOUR_TMDB_API_KEY_HERE'; // Get your free key from https://www.themoviedb.org/settings/api
+export const TMDB_API_KEY = '5f9cb28b6592e9dbff751d984d4a498b';
 export const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 export const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
 

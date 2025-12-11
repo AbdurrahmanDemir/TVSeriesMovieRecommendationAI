@@ -26,6 +26,7 @@
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="components/components.css">
+    <link rel="stylesheet" href="components/emotional-profile.css">
 </head>
 
 <body>
@@ -133,6 +134,129 @@
                                     </p>
                                 </div>
                                 <div class="genre-grid" id="genreGrid"></div>
+                            </div>
+
+                            <!-- Step 2.5: Emotional Profile (NEW) -->
+                            <div class="preference-step hidden" id="step2_5">
+                                <h3 class="step-title">🎭 Duygusal Profilinizi Oluşturalım</h3>
+                                <p class="step-subtitle">Size daha iyi öneriler sunabilmemiz için birkaç soru</p>
+
+                                <!-- Mood Selection -->
+                                <div style="margin-bottom: var(--space-xl);">
+                                    <h4
+                                        style="margin-bottom: var(--space-md); font-size: 1rem; color: var(--color-text-secondary);">
+                                        😊 Bugün nasıl hissediyorsunuz?
+                                    </h4>
+                                    <div class="mood-selection-grid"
+                                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-sm);">
+                                        <button class="mood-option-card" data-mood="happy">
+                                            <span style="font-size: 2.5rem;">😊</span>
+                                            <span>Mutlu</span>
+                                        </button>
+                                        <button class="mood-option-card" data-mood="sad">
+                                            <span style="font-size: 2.5rem;">😢</span>
+                                            <span>Üzgün</span>
+                                        </button>
+                                        <button class="mood-option-card" data-mood="excited">
+                                            <span style="font-size: 2.5rem;">🤩</span>
+                                            <span>Heyecanlı</span>
+                                        </button>
+                                        <button class="mood-option-card" data-mood="relaxed">
+                                            <span style="font-size: 2.5rem;">😌</span>
+                                            <span>Rahat</span>
+                                        </button>
+                                        <button class="mood-option-card" data-mood="stressed">
+                                            <span style="font-size: 2.5rem;">😰</span>
+                                            <span>Stresli</span>
+                                        </button>
+                                        <button class="mood-option-card" data-mood="bored">
+                                            <span style="font-size: 2.5rem;">😑</span>
+                                            <span>Sıkılmış</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Viewing Purpose -->
+                                <div style="margin-bottom: var(--space-xl);">
+                                    <h4
+                                        style="margin-bottom: var(--space-md); font-size: 1rem; color: var(--color-text-secondary);">
+                                        🎯 İzleme amacınız nedir?
+                                    </h4>
+                                    <div class="purpose-grid"
+                                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-sm);">
+                                        <button class="purpose-option-card" data-purpose="relax">
+                                            <span style="font-size: 1.5rem;">🛋️</span>
+                                            <span>Rahatlamak</span>
+                                        </button>
+                                        <button class="purpose-option-card" data-purpose="think">
+                                            <span style="font-size: 1.5rem;">🤔</span>
+                                            <span>Düşünmek</span>
+                                        </button>
+                                        <button class="purpose-option-card" data-purpose="fun">
+                                            <span style="font-size: 1.5rem;">🎉</span>
+                                            <span>Eğlenmek</span>
+                                        </button>
+                                        <button class="purpose-option-card" data-purpose="escape">
+                                            <span style="font-size: 1.5rem;">🌍</span>
+                                            <span>Kaçış</span>
+                                        </button>
+                                        <button class="purpose-option-card" data-purpose="learn">
+                                            <span style="font-size: 1.5rem;">📚</span>
+                                            <span>Öğrenmek</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Energy Level -->
+                                <div style="margin-bottom: var(--space-xl);">
+                                    <h4
+                                        style="margin-bottom: var(--space-md); font-size: 1rem; color: var(--color-text-secondary);">
+                                        ⚡ Enerji seviyeniz?
+                                    </h4>
+                                    <div class="energy-slider-container"
+                                        style="padding: var(--space-lg); background: rgba(255,255,255,0.05); border-radius: var(--radius-lg);">
+                                        <div
+                                            style="display: flex; justify-content: space-between; margin-bottom: var(--space-md);">
+                                            <span
+                                                style="font-size: 0.9rem; color: var(--color-text-muted);">Düşük</span>
+                                            <span id="energyValue"
+                                                style="font-weight: 600; color: var(--color-primary);">Orta</span>
+                                            <span
+                                                style="font-size: 0.9rem; color: var(--color-text-muted);">Yüksek</span>
+                                        </div>
+                                        <input type="range" id="energySlider" min="1" max="3" value="2"
+                                            style="width: 100%; height: 8px; border-radius: var(--radius-sm); background: linear-gradient(90deg, #ef4444 0%, #fbbf24 50%, #4ade80 100%); outline: none; -webkit-appearance: none;">
+                                    </div>
+                                </div>
+
+                                <!-- Emotional Intensity -->
+                                <div style="margin-bottom: var(--space-xl);">
+                                    <h4
+                                        style="margin-bottom: var(--space-md); font-size: 1rem; color: var(--color-text-secondary);">
+                                        💫 Duygusal yoğunluk tercihiniz?
+                                    </h4>
+                                    <div class="intensity-grid"
+                                        style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm);">
+                                        <button class="intensity-option-card" data-intensity="light">
+                                            <span style="font-size: 1.5rem;">🌤️</span>
+                                            <span>Hafif</span>
+                                            <small style="font-size: 0.75rem; color: var(--color-text-muted);">Rahat,
+                                                kolay</small>
+                                        </button>
+                                        <button class="intensity-option-card" data-intensity="medium">
+                                            <span style="font-size: 1.5rem;">⛅</span>
+                                            <span>Orta</span>
+                                            <small
+                                                style="font-size: 0.75rem; color: var(--color-text-muted);">Dengeli</small>
+                                        </button>
+                                        <button class="intensity-option-card" data-intensity="intense">
+                                            <span style="font-size: 1.5rem;">⚡</span>
+                                            <span>Yoğun</span>
+                                            <small style="font-size: 0.75rem; color: var(--color-text-muted);">Derin,
+                                                etkileyici</small>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Step 3: AI Round 1 -->
@@ -258,7 +382,7 @@
     </div>
 
     <!-- Scripts -->
-    <script type="module" src="app.js?v=20251211"></script>
+    <script type="module" src="app.js?v=20251211-1606"></script>
 </body>
 
 </html>

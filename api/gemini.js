@@ -3,8 +3,8 @@
  * Provides AI-powered features for content analysis and recommendations
  */
 
-const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'; // Get your free key from https://makersuite.google.com/app/apikey
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_KEY = 'AIzaSyAxBsn_s-fKJjS9n8W4ZyKrBMeIpgChU2Y';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent';
 
 class GeminiAPI {
     constructor() {
@@ -46,6 +46,8 @@ class GeminiAPI {
             throw new Error('API key not set. Please set your Gemini API key first.');
         }
 
+        console.log('🤖 Calling Gemini API...');
+
         try {
             const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
                 method: 'POST',
@@ -67,15 +69,19 @@ class GeminiAPI {
                 })
             });
 
+            console.log('📡 Gemini API response status:', response.status);
+
             if (!response.ok) {
                 const errorData = await response.json();
+                console.error('❌ Gemini API error data:', errorData);
                 throw new Error(`Gemini API error: ${errorData.error?.message || 'Unknown error'}`);
             }
 
             const data = await response.json();
+            console.log('✅ Gemini API success');
             return data.candidates[0].content.parts[0].text;
         } catch (error) {
-            console.error('Gemini API error:', error);
+            console.error('❌ Gemini API error:', error);
             throw error;
         }
     }
@@ -101,6 +107,134 @@ Lütfen şunları yap:
 Türkçe yanıt ver ve kısa tut.`;
 
         return await this.generateContent(prompt);
+    }
+
+    /**
+     * Advanced Sentiment Analysis with detailed breakdown
+     * Returns structured data for visualization
+     */
+    async advancedSentimentAnalysis(title, reviews, mediaType = 'movie') {
+        const reviewTexts = reviews.slice(0, 10).map(r => r.content.substring(0, 600)).join('\n---\n');
+
+        const prompt = `"${title}" ${mediaType === 'movie' ? 'filmi' : 'dizisi'} için gelişmiş duygu analizi yap.
+
+İncelemeler:
+${reviewTexts}
+
+Lütfen aşağıdaki formatta JSON yanıt ver (sadece JSON, başka metin yok):
+
+{
+  "overallSentiment": "pozitif/nötr/negatif",
+  "sentimentScores": {
+    "positive": 0-100 arası sayı,
+    "neutral": 0-100 arası sayı,
+    "negative": 0-100 arası sayı
+  },
+  "emotionalIntensity": 0-10 arası sayı,
+  "keyThemes": ["tema1", "tema2", "tema3"],
+  "strengths": ["güçlü yön 1", "güçlü yön 2"],
+  "weaknesses": ["zayıf yön 1", "zayıf yön 2"],
+  "emotionalTone": "duygusal/aksiyon/komedi/gerilim vb.",
+  "recommendationScore": 0-10 arası sayı,
+  "audienceType": "hangi izleyici kitlesi için uygun",
+  "summary": "2-3 cümlelik özet"
+}
+
+Sadece geçerli JSON döndür, başka açıklama ekleme.`;
+
+        try {
+            const response = await this.generateContent(prompt);
+            // Extract JSON from response (sometimes AI adds markdown)
+            const jsonMatch = response.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid JSON response');
+        } catch (error) {
+            console.error('Advanced sentiment analysis error:', error);
+            // Fallback to basic structure
+            return {
+                overallSentiment: 'nötr',
+                sentimentScores: { positive: 50, neutral: 30, negative: 20 },
+                emotionalIntensity: 5,
+                keyThemes: ['Analiz yapılamadı'],
+                strengths: ['Veri yetersiz'],
+                weaknesses: ['Veri yetersiz'],
+                emotionalTone: 'belirsiz',
+                recommendationScore: 5,
+                audienceType: 'Genel izleyici',
+                summary: 'Yeterli veri olmadığı için detaylı analiz yapılamadı.'
+            };
+        }
+    }
+
+    /**
+     * Analyze content using metadata (when reviews are not available)
+     */
+    async analyzeContentMetadata(content, mediaType = 'movie') {
+        const title = content.title || content.name;
+        const overview = content.overview || 'Açıklama mevcut değil';
+        const genres = content.genres?.map(g => g.name).join(', ') || 'Bilinmiyor';
+        const rating = content.vote_average || 0;
+        const releaseYear = (content.release_date || content.first_air_date || '').substring(0, 4);
+
+        const prompt = `"${title}" ${mediaType === 'movie' ? 'filmi' : 'dizisi'} için gelişmiş analiz yap.
+
+Bilgiler:
+- Açıklama: ${overview}
+- Türler: ${genres}
+- Puan: ${rating}/10
+- Yıl: ${releaseYear}
+
+Lütfen aşağıdaki formatta JSON yanıt ver (sadece JSON, başka metin yok):
+
+{
+  "overallSentiment": "pozitif/nötr/negatif",
+  "sentimentScores": {
+    "positive": 0-100 arası sayı (genel kalite ve potansiyele göre),
+    "neutral": 0-100 arası sayı,
+    "negative": 0-100 arası sayı
+  },
+  "emotionalIntensity": 0-10 arası sayı (türlere ve açıklamaya göre),
+  "keyThemes": ["tema1", "tema2", "tema3"] (türlerden ve açıklamadan çıkar),
+  "strengths": ["güçlü yön 1", "güçlü yön 2"] (açıklamadan ve türlerden tahmin et),
+  "weaknesses": ["potansiyel zayıf yön 1"] (genel türe göre tahmin),
+  "emotionalTone": "duygusal/aksiyon/komedi/gerilim vb." (türlere göre),
+  "recommendationScore": 0-10 arası sayı (puana ve türlere göre),
+  "audienceType": "hangi izleyici kitlesi için uygun",
+  "summary": "2-3 cümlelik özet (açıklamayı özetle)"
+}
+
+Sadece geçerli JSON döndür, başka açıklama ekleme.`;
+
+        try {
+            const response = await this.generateContent(prompt);
+            const jsonMatch = response.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid JSON response');
+        } catch (error) {
+            console.error('Content metadata analysis error:', error);
+            // Fallback based on available data
+            const positiveScore = Math.min(rating * 10, 100);
+            return {
+                overallSentiment: rating >= 7 ? 'pozitif' : rating >= 5 ? 'nötr' : 'negatif',
+                sentimentScores: {
+                    positive: positiveScore,
+                    neutral: 100 - positiveScore - 10,
+                    negative: 10
+                },
+                emotionalIntensity: Math.min(Math.round(rating), 10),
+                keyThemes: genres.split(', ').slice(0, 3),
+                strengths: ['Yüksek puan', 'Popüler tür'],
+                weaknesses: ['Detaylı analiz için yorum gerekli'],
+                emotionalTone: genres.split(', ')[0] || 'belirsiz',
+                recommendationScore: Math.round(rating),
+                audienceType: 'Genel izleyici',
+                summary: overview.substring(0, 200) + '...'
+            };
+        }
     }
 
     /**

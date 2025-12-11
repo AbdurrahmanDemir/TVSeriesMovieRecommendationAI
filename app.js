@@ -14,11 +14,19 @@ import { debounce, formatRating, getYear } from './utils/helpers.js';
 class App {
     constructor() {
         this.currentStep = 1;
-        this.totalSteps = 5; // 1: Media Type, 2: Genres, 3-5: AI Rounds
+        this.totalSteps = 6; // 1: Media Type, 2: Genres, 2.5: Emotional Profile, 3-5: AI Rounds
         this.preferences = storage.loadPreferences();
         this.searchResults = [];
         this.recommendations = [];
         this.contentPool = [];
+
+        // Emotional Profile Data
+        this.emotionalProfile = {
+            mood: null,
+            purpose: null,
+            energyLevel: 2,
+            intensity: null
+        };
 
         this.init();
     }
@@ -34,6 +42,9 @@ class App {
         // Initialize AI Features
         this.aiFeatures = new AIFeatures(this);
         this.aiFeatures.init();
+
+        // Initialize Emotional Profile
+        this.initEmotionalProfile();
 
         // AI Chat disabled
     }
@@ -64,6 +75,7 @@ class App {
         this.steps = {
             1: document.getElementById('step1'),
             2: document.getElementById('step2'),
+            2.5: document.getElementById('step2_5'),
             3: document.getElementById('step3'),
             4: document.getElementById('step4'),
             5: document.getElementById('step5')
@@ -316,8 +328,17 @@ class App {
         if (!this.validateStep()) return;
 
         if (this.currentStep < this.totalSteps) {
+            // Determine next step
+            let nextStep;
+            if (this.currentStep === 2) {
+                nextStep = 2.5; // Go to emotional profile after genres
+            } else if (this.currentStep === 2.5) {
+                nextStep = 3; // Go to AI Round 1 after emotional profile
+            } else {
+                nextStep = this.currentStep + 1;
+            }
+
             // Prepare AI rounds BEFORE switching steps (for steps 3, 4, 5)
-            const nextStep = this.currentStep + 1;
             if (nextStep >= 3 && nextStep <= 5) {
                 // Step 3 = Round 1, Step 4 = Round 2, Step 5 = Round 3
                 const roundNumber = nextStep - 2;
@@ -329,7 +350,7 @@ class App {
 
             // Now switch to the next step
             this.steps[this.currentStep].classList.add('hidden');
-            this.currentStep++;
+            this.currentStep = nextStep;
             this.steps[this.currentStep].classList.remove('hidden');
             this.updateProgress();
             this.updateNavigationButtons();
@@ -345,7 +366,16 @@ class App {
     previousStep() {
         if (this.currentStep > 1) {
             this.steps[this.currentStep].classList.add('hidden');
-            this.currentStep--;
+
+            // Determine previous step
+            if (this.currentStep === 3) {
+                this.currentStep = 2.5; // Go back to emotional profile
+            } else if (this.currentStep === 2.5) {
+                this.currentStep = 2; // Go back to genres
+            } else {
+                this.currentStep--;
+            }
+
             this.steps[this.currentStep].classList.remove('hidden');
             this.updateProgress();
             this.updateNavigationButtons();
@@ -710,11 +740,9 @@ class App {
                     <button class="btn btn-secondary" onclick="app.addToFavorites(${item.id}, '${type}')">
                         ❤️ Favorilere Ekle
                     </button>
-                    ${reviewsData && reviewsData.results.length > 0 ? `
-                        <button class="btn btn-secondary" onclick="app.analyzeReviews()">
-                            🤖 İncelemeleri Analiz Et
-                        </button>
-                    ` : ''}
+                    <button class="btn btn-secondary" onclick="app.analyzeReviews()">
+                        🧠 Gelişmiş Duygu Analizi ${reviewsData && reviewsData.results.length > 0 ? `(${reviewsData.results.length})` : ''}
+                    </button>
                     <button class="btn btn-secondary" onclick="app.chatAboutContent()">
                         💬 AI ile Sohbet Et
                     </button>
@@ -942,7 +970,7 @@ class App {
     }
 
     /**
-     * Analyze reviews with AI
+     * Analyze reviews with Advanced AI Sentiment Analysis
      */
     async analyzeReviews() {
         if (!geminiAPI.hasApiKey()) {
@@ -951,33 +979,136 @@ class App {
         }
 
         const container = document.getElementById('aiAnalysisContainer');
+        const title = this.currentModalItem.title || this.currentModalItem.name;
+        const hasReviews = this.currentModalReviews && this.currentModalReviews.length > 0;
+
+        console.log(`📊 Analyzing "${title}" - Reviews: ${hasReviews ? this.currentModalReviews.length : 0}`);
+
         container.innerHTML = `
             <div class="glass-card" style="margin-top: var(--space-lg);">
                 <h3 style="margin-bottom: var(--space-md); display: flex; align-items: center; gap: var(--space-sm);">
-                    <span>🤖</span>
-                    <span>AI İnceleme Analizi</span>
+                    <span>🧠</span>
+                    <span>Gelişmiş AI Duygu Analizi</span>
                 </h3>
                 <div class="spinner" style="margin: var(--space-lg) auto;"></div>
-                <p style="text-align: center; color: var(--color-text-muted);">İncelemeler analiz ediliyor...</p>
+                <p style="text-align: center; color: var(--color-text-muted);">
+                    ${hasReviews ? 'İncelemeler' : 'İçerik'} detaylı olarak analiz ediliyor...
+                </p>
             </div>
         `;
 
         try {
-            const title = this.currentModalItem.title || this.currentModalItem.name;
-            const analysis = await geminiAPI.analyzeReviews(
-                title,
-                this.currentModalReviews,
-                this.currentModalType
-            );
+            let analysisData;
 
+            if (hasReviews) {
+                // Use reviews for analysis
+                analysisData = await geminiAPI.advancedSentimentAnalysis(
+                    title,
+                    this.currentModalReviews,
+                    this.currentModalType
+                );
+            } else {
+                // Use content metadata for analysis
+                analysisData = await geminiAPI.analyzeContentMetadata(
+                    this.currentModalItem,
+                    this.currentModalType
+                );
+            }
+
+            // Render advanced analysis with visualizations
             container.innerHTML = `
                 <div class="glass-card" style="margin-top: var(--space-lg); animation: fadeIn 0.3s ease-in;">
-                    <h3 style="margin-bottom: var(--space-md); display: flex; align-items: center; gap: var(--space-sm);">
-                        <span>🤖</span>
-                        <span>AI İnceleme Analizi</span>
+                    <h3 style="margin-bottom: var(--space-lg); display: flex; align-items: center; gap: var(--space-sm);">
+                        <span>🧠</span>
+                        <span>Gelişmiş AI Duygu Analizi</span>
                     </h3>
-                    <div style="color: var(--color-text-secondary); line-height: 1.8; white-space: pre-wrap;">
-                        ${analysis}
+                    
+                    <!-- Overall Sentiment -->
+                    <div style="margin-bottom: var(--space-lg);">
+                        <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-sm);">
+                            <span style="font-size: 2rem;">${this.getSentimentEmoji(analysisData.overallSentiment)}</span>
+                            <div>
+                                <div style="font-weight: 600; font-size: 1.1rem;">Genel Duygu: ${this.getSentimentLabel(analysisData.overallSentiment)}</div>
+                                <div style="color: var(--color-text-muted); font-size: 0.9rem;">Duygusal Yoğunluk: ${analysisData.emotionalIntensity}/10</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Emotional Intensity Meter -->
+                        <div style="background: rgba(255,255,255,0.1); border-radius: var(--radius-md); padding: var(--space-xs); margin-top: var(--space-sm);">
+                            <div style="background: linear-gradient(90deg, #4ade80 0%, #fbbf24 50%, #ef4444 100%); height: 8px; border-radius: var(--radius-sm); width: ${analysisData.emotionalIntensity * 10}%; transition: width 0.5s ease;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Sentiment Scores Chart -->
+                    <div style="margin-bottom: var(--space-lg);">
+                        <h4 style="margin-bottom: var(--space-md); font-size: 1rem;">📊 Duygu Dağılımı</h4>
+                        <div style="display: grid; gap: var(--space-sm);">
+                            ${this.renderSentimentBar('Pozitif', analysisData.sentimentScores.positive, '#4ade80')}
+                            ${this.renderSentimentBar('Nötr', analysisData.sentimentScores.neutral, '#fbbf24')}
+                            ${this.renderSentimentBar('Negatif', analysisData.sentimentScores.negative, '#ef4444')}
+                        </div>
+                    </div>
+
+                    <!-- Key Themes -->
+                    <div style="margin-bottom: var(--space-lg);">
+                        <h4 style="margin-bottom: var(--space-md); font-size: 1rem;">🎯 Ana Temalar</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: var(--space-sm);">
+                            ${analysisData.keyThemes.map(theme => `
+                                <span style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; padding: 0.4rem 0.8rem; border-radius: var(--radius-md); font-size: 0.9rem;">
+                                    ${theme}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Strengths & Weaknesses -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-lg);">
+                        <div>
+                            <h4 style="margin-bottom: var(--space-sm); font-size: 1rem; color: #4ade80;">✅ Güçlü Yönler</h4>
+                            <ul style="list-style: none; padding: 0; margin: 0;">
+                                ${analysisData.strengths.map(strength => `
+                                    <li style="padding: var(--space-xs) 0; color: var(--color-text-secondary); font-size: 0.9rem;">• ${strength}</li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 style="margin-bottom: var(--space-sm); font-size: 1rem; color: #ef4444;">⚠️ Zayıf Yönler</h4>
+                            <ul style="list-style: none; padding: 0; margin: 0;">
+                                ${analysisData.weaknesses.map(weakness => `
+                                    <li style="padding: var(--space-xs) 0; color: var(--color-text-muted); font-size: 0.9rem;">• ${weakness}</li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Additional Info -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-lg);">
+                        <div style="background: rgba(255,255,255,0.05); padding: var(--space-md); border-radius: var(--radius-md);">
+                            <div style="color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: var(--space-xs);">Duygusal Ton</div>
+                            <div style="font-weight: 600;">${analysisData.emotionalTone}</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: var(--space-md); border-radius: var(--radius-md);">
+                            <div style="color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: var(--space-xs);">Hedef Kitle</div>
+                            <div style="font-weight: 600;">${analysisData.audienceType}</div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendation Score -->
+                    <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%); padding: var(--space-lg); border-radius: var(--radius-lg); margin-bottom: var(--space-lg);">
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; font-weight: 700; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                ${analysisData.recommendationScore}/10
+                            </div>
+                            <div style="color: var(--color-text-muted); margin-top: var(--space-xs);">AI Öneri Skoru</div>
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div style="background: rgba(255,255,255,0.05); padding: var(--space-lg); border-radius: var(--radius-lg); border-left: 4px solid #6366f1;">
+                        <h4 style="margin-bottom: var(--space-sm); font-size: 1rem;">📝 Özet</h4>
+                        <p style="color: var(--color-text-secondary); line-height: 1.6; margin: 0;">
+                            ${analysisData.summary}
+                        </p>
                     </div>
                 </div>
             `;
@@ -991,6 +1122,47 @@ class App {
                 </div>
             `;
         }
+    }
+
+    /**
+     * Helper: Get sentiment emoji
+     */
+    getSentimentEmoji(sentiment) {
+        const emojis = {
+            'pozitif': '😊',
+            'nötr': '😐',
+            'negatif': '😞'
+        };
+        return emojis[sentiment] || '🤔';
+    }
+
+    /**
+     * Helper: Get sentiment label
+     */
+    getSentimentLabel(sentiment) {
+        const labels = {
+            'pozitif': 'Pozitif',
+            'nötr': 'Nötr',
+            'negatif': 'Negatif'
+        };
+        return labels[sentiment] || 'Belirsiz';
+    }
+
+    /**
+     * Helper: Render sentiment bar
+     */
+    renderSentimentBar(label, value, color) {
+        return `
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-xs); font-size: 0.9rem;">
+                    <span>${label}</span>
+                    <span style="font-weight: 600;">${value}%</span>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); border-radius: var(--radius-sm); height: 12px; overflow: hidden;">
+                    <div style="background: ${color}; height: 100%; width: ${value}%; border-radius: var(--radius-sm); transition: width 0.5s ease;"></div>
+                </div>
+            </div>
+        `;
     }
 
     /**
@@ -1035,6 +1207,57 @@ class App {
             this.hideLoading();
             alert('❌ Hata: ' + error.message);
         }
+    }
+
+    /**
+     * Initialize Emotional Profile Event Listeners
+     */
+    initEmotionalProfile() {
+        // Mood selection
+        const moodCards = document.querySelectorAll('.mood-option-card');
+        moodCards.forEach(card => {
+            card.addEventListener('click', () => {
+                moodCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                this.emotionalProfile.mood = card.dataset.mood;
+                console.log('🎭 Mood selected:', this.emotionalProfile.mood);
+            });
+        });
+
+        // Purpose selection
+        const purposeCards = document.querySelectorAll('.purpose-option-card');
+        purposeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                purposeCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                this.emotionalProfile.purpose = card.dataset.purpose;
+                console.log('🎯 Purpose selected:', this.emotionalProfile.purpose);
+            });
+        });
+
+        // Energy level slider
+        const energySlider = document.getElementById('energySlider');
+        const energyValue = document.getElementById('energyValue');
+        if (energySlider && energyValue) {
+            energySlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.emotionalProfile.energyLevel = value;
+                const labels = ['Düşük', 'Orta', 'Yüksek'];
+                energyValue.textContent = labels[value - 1];
+                console.log('⚡ Energy level:', value);
+            });
+        }
+
+        // Intensity selection
+        const intensityCards = document.querySelectorAll('.intensity-option-card');
+        intensityCards.forEach(card => {
+            card.addEventListener('click', () => {
+                intensityCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                this.emotionalProfile.intensity = card.dataset.intensity;
+                console.log('💫 Intensity selected:', this.emotionalProfile.intensity);
+            });
+        });
     }
 }
 
