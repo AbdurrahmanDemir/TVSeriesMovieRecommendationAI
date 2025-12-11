@@ -4,7 +4,8 @@
  */
 
 const GEMINI_API_KEY = 'AIzaSyAxBsn_s-fKJjS9n8W4ZyKrBMeIpgChU2Y';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent';
+// ✅ DÜZELTME: Doğru model adı ve v1 endpoint
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
 
 class GeminiAPI {
     constructor() {
